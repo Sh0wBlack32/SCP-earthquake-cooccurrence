@@ -1,4 +1,5 @@
 import org.apache.spark.sql.SparkSession
+import scala.math.Ordering.Implicits._
 
 /**
  * Approach 2 — Self-Join
