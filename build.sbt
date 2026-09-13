@@ -15,3 +15,8 @@ assembly / assemblyMergeStrategy := {
   case PathList("META-INF", _*) => MergeStrategy.discard
   case _                        => MergeStrategy.first
 }
+
+
+// Permette a "sbt run"/"runMain" di trovare Spark in locale (provided lo esclude di default)
+Compile / run := Defaults.runTask(Compile / fullClasspath, Compile / run / mainClass, Compile / run / runner).evaluated
+Compile / runMain := Defaults.runMainTask(Compile / fullClasspath, Compile / run / runner).evaluated

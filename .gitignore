@@ -1,0 +1,26 @@
+# sbt / Scala build artifacts
+target/
+project/target/
+project/project/target/
+*.class
+
+# sbt temp/lock files
+project/*.lock
+
+# Stray editor/autosave temp files (Notepad su Windows lascia questi residui)
+*.tmp.*
+
+# Dataset (troppo grandi per GitHub — restano solo su GCS, referenziati via URI gs://)
+*.csv
+
+# Cartella di output/scratch locale (non fa parte del progetto)
+scratch-locale/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.bloop/
+.bsp/
+.metals/
