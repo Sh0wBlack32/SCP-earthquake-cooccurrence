@@ -22,6 +22,7 @@ export BUCKET=gs://scp-earthquake-<PROJECT_ID>
    ```
    Verifica che il progetto abbia il billing account con i crediti education collegato (Console >
    Fatturazione). Senza billing collegato, DataProc non parte.
+   > ⚠️ **Pagamento anticipato richiesto da Google**: durante il collegamento del metodo di pagamento, Google puo' chiedere un **pagamento anticipato una tantum (es. 25,00 €)** prima di accreditare i crediti (prova gratuita/education). E' **rimborsabile** se in seguito chiudi l'account di fatturazione Cloud. Non e' un errore: e' normale, basta pagarlo per sbloccare il billing.
 3. **Verifica quota `n2-standard-4`**: con crediti education la quota di CPU per regione a volte è
    limitata. Controlla in Console > IAM & Admin > Quote, filtrando per "N2 CPUs" nella regione scelta.
    Con 4 worker + 1 master da 4 vCPU ciascuno servono almeno 20 vCPU N2 disponibili. Se la quota è
