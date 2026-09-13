@@ -5,10 +5,11 @@ Guida end-to-end: dal setup dell'account GCP alla consegna finale del progetto (
 variabili in tutti i comandi.
 
 ```bash
-export PROJECT_ID=<il-tuo-project-id>
+export PROJECT_ID=scp-earthquake-2026
 export REGION=europe-west1
-export BUCKET=gs://scp-earthquake-<PROJECT_ID>
+export BUCKET=gs://scp-earthquake-2026-data
 ```
+> Valori già definitivi per questo progetto (vedi log sotto) — non serve più sostituirli.
 
 ## 0. Prerequisiti (una tantum, se non già fatti)
 
@@ -23,12 +24,33 @@ export BUCKET=gs://scp-earthquake-<PROJECT_ID>
    Verifica che il progetto abbia il billing account con i crediti education collegato (Console >
    Fatturazione). Senza billing collegato, DataProc non parte.
    > ⚠️ **Pagamento anticipato richiesto da Google**: durante il collegamento del metodo di pagamento, Google puo' chiedere un **pagamento anticipato una tantum (es. 25,00 €)** prima di accreditare i crediti (prova gratuita/education). E' **rimborsabile** se in seguito chiudi l'account di fatturazione Cloud. Non e' un errore: e' normale, basta pagarlo per sbloccare il billing.
+   >
+   > **Verificato in console (13/09/2026)**: finche' questo pagamento non risulta accreditato, l'account
+   > di fatturazione resta in stato **"Account di prova gratuito"** e Google blocca silenziosamente
+   > l'abilitazione delle API a pagamento (es. Compute Engine API) — il pulsante "Abilita" non da' errore
+   > ma non abilita nulla. Di conseguenza la quota "N2 CPUs" non compare nemmeno nella pagina Quote finche'
+   > Compute Engine API non e' abilitata. **Il pagamento va fatto dall'utente** (Claude non puo' inserire
+   > dati di pagamento per policy): vai su Fatturazione > "Esegui un pagamento" nella console, completalo,
+   > poi attendi fino a 24 ore che venga accreditato prima di riprovare ad abilitare Compute Engine API.
+   >
+   > **Aggiornamento (13/09/2026)**: pagamento accreditato, ma l'account restava comunque in stato
+   > "prova gratuita" (Compute Engine API non si abilitava, nessun errore visibile). Risolto cliccando
+   > **"Attiva" nel banner in alto** ("Attiva l'account completo per ottenere l'accesso illimitato a
+   > tutti i servizi Google Cloud") in Fatturazione — da li' in poi Compute Engine API, Cloud Dataproc
+   > API e Cloud Storage API si sono abilitate correttamente (verificato: 22 → API abilitate ok).
+   > **Progetto usato**: `scp-earthquake-2026`.
 3. **Verifica quota `n2-standard-4`**: con crediti education la quota di CPU per regione a volte è
    limitata. Controlla in Console > IAM & Admin > Quote, filtrando per "N2 CPUs" nella regione scelta.
    Con 4 worker + 1 master da 4 vCPU ciascuno servono almeno 20 vCPU N2 disponibili. Se la quota è
    insufficiente, richiedi l'aumento dalla stessa pagina (di solito approvato in pochi minuti per
    progetti education) **prima** di arrivare al cluster a 4 worker, per non perdere tempo a metà test.
+   > **Verificato (13/09/2026)**: quota N2 CPUs in `europe-west1` = **32** (dopo aver abilitato Compute
+   > Engine API). Sufficiente per 4 worker + 1 master (servono 20). Nessun aumento richiesto.
 4. **sbt** installato in locale per compilare il progetto (`sbt --version` per verificare).
+   > **Nota (13/09/2026)**: sbt 1.9.7 e gcloud CLI 583.0.0 installati nell'ambiente di lavoro cloud di
+   > Claude (non sul PC Windows). Il ponte terminale verso il PC (`device_bash`) e' temporaneamente
+   > indisponibile per un problema noto lato Anthropic legato a un aggiornamento Windows del 8/9/2026
+   > — i comandi gcloud/sbt verranno rieseguiti automaticamente non appena torna disponibile.
 
 ## 1. Setup iniziale del progetto (una tantum)
 
@@ -39,6 +61,13 @@ gcloud services enable dataproc.googleapis.com storage.googleapis.com
 
 gsutil mb -l $REGION $BUCKET
 ```
+
+> **Stato (13/09/2026)**: Compute Engine API, Cloud Dataproc API e Cloud Storage API già abilitate
+> tramite console. Bucket **`scp-earthquake-2026-data`** già creato via console (regione europe-west1,
+> accesso privato/non pubblico) — equivalente a `gsutil mb`. Restano da fare `gcloud auth login` e
+> `gcloud config set project` quando il terminale (device_bash) tornerà disponibile, oppure eseguili tu
+> stesso in un terminale sul tuo PC se vuoi procedere subito (basta avere gcloud CLI installato:
+> https://cloud.google.com/sdk/docs/install).
 
 ## 2. Build del JAR (in locale, sul tuo computer)
 
