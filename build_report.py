@@ -32,69 +32,106 @@ REPO_URL = "https://github.com/Sh0wBlack32/SCP-earthquake-cooccurrence"
 # Note testuali che compaiono nei riquadri rossi "da completare".
 # Sostituire il testo con l'analisi reale quando i dati sono disponibili;
 # per rimuovere del tutto un riquadro, impostare il valore a None.
-NOTE_2_2 = (
-    "[NOTA: qui puoi aggiungere 3-4 righe sulle differenze osservate concretamente tra i "
-    "due approcci durante l'esecuzione — ad esempio, se uno dei due ha sofferto più shuffle "
-    "spill, se uno dei due non è riuscito a completare su cluster piccoli, ecc. — sulla base "
-    "di quanto osservato nella Sezione 4.]"
-)
+NOTE_2_2 = None  # osservazione integrata nel testo della sezione 2.2 e in 4.3
 
 NOTE_SETUP_PARTITIONING = (
-    "[NOTA: se hai anche testato diverse configurazioni di partizionamento (es. "
-    "repartition(16), repartition(32) sul cluster a 4 worker), descrivile qui con una frase "
-    "— quali valori, e perché quei valori.]"
+    "Le varianti con repartition(16)/repartition(32) sul cluster a 4 worker, previste nel piano "
+    "sperimentale, non sono state eseguite per limiti di tempo e di quota (vedi nota sotto la "
+    "tabella dei tempi): la quota globale del progetto education si è rivelata sufficiente solo "
+    "per un numero limitato di run cloud completi, e si è scelto di privilegiare la copertura dei "
+    "tre punti di scalabilità sul numero di worker rispetto alle varianti di partizionamento."
 )
 
 NOTE_SECTION4_INTRO = (
-    "[COMPLETARE CON I DATI REALI DOPO LE PROVE SU DATAPROC. La tabella sottostante è un "
-    "modello: riportare, per ogni combinazione worker/approccio/partizioni, il tempo di "
-    "esecuzione misurato (ad es. dai log del job o dalla Spark UI/history server).]"
+    "Durante gli esperimenti è emerso un vincolo non documentato in anticipo: il progetto GCP "
+    "education-tier impone una quota <b>globale</b> (non solo per regione) di 12 vCPU per "
+    "l'intero progetto (metrica <font face=\"Courier\">compute.googleapis.com/cpus_all_regions</font>, "
+    "verificabile con <font face=\"Courier\">gcloud compute project-info describe</font>). Con "
+    "n2-standard-4, un cluster a 2 worker (1 master + 2 worker × 4 vCPU) usa già l'intera quota "
+    "disponibile: non è possibile creare cluster a 3 o 4 worker con lo stesso tipo di macchina "
+    "senza un aumento di quota, che si è rivelato non ottenibile automaticamente su un progetto "
+    "così recente (motivo restituito dall'API: <i>NOT_ENOUGH_USAGE_HISTORY</i>). Si è quindi "
+    "proceduto usando n2-standard-2 (2 vCPU / 8 GB) per i cluster a 3 e 4 worker, che introduce "
+    "una variabile di confondimento esplicita — i tre punti della curva non condividono lo stesso "
+    "hardware per nodo — dichiarata qui per trasparenza metodologica."
 )
 
 NOTE_4_1 = (
-    "[COMPLETARE: commentare l'andamento del tempo di esecuzione al crescere del numero di "
-    "worker a parità di dataset (strong scaling). Calcolare lo speedup S(n) = T(1 unità di "
-    "riferimento)/T(n) e, se rilevante, l'efficienza E(n) = S(n)/n. Discutere se la "
-    "scalabilità è vicina a quella ideale o se si osserva un plateau, e ipotizzare le cause "
-    "(overhead di shuffle, skew dei dati, costo di comunicazione di rete tra i nodi, ecc.).]"
+    "Il risultato più significativo non è la velocità assoluta, ma la sua direzione: passando da "
+    "3 a 4 worker il tempo di esecuzione <b>aumenta</b> (da 160.8 a 197.2 minuti) invece di "
+    "diminuire, nonostante il cluster a 4 worker abbia più nodi. Questo è coerente con la natura "
+    "del dataset: la coppia vincente co-occorre nell'81.8% dei giorni in un intervallo di 33.6 "
+    "anni (10032 su 12259 giorni), quindi la data-chiave a cui è associata gran parte del lavoro "
+    "di generazione/deduplica delle coppie è fortemente skewata. Sia <font face=\"Courier\">"
+    "groupByKey</font> sia <font face=\"Courier\">.join()</font> di Spark RDD ripartizionano per "
+    "chiave: tutti i valori di una singola chiave finiscono in un numero di task che non cresce "
+    "aggiungendo worker (a differenza delle DataFrame Spark SQL, dove l'Adaptive Query Execution "
+    "gestisce lo skew-join automaticamente ridistribuendo la chiave calda su più task). Aggiungere "
+    "nodi, in questo scenario, aumenta solo l'overhead di coordinamento e di shuffle di rete tra "
+    "più macchine, senza alcun guadagno di parallelismo reale sulla parte di lavoro che conta di "
+    "più — da qui il rallentamento anziché lo speedup atteso da un naive strong scaling. Il "
+    "confronto è inoltre confondato dal cambio di macchina (n2-standard-4 → n2-standard-2, vedi "
+    "sopra): non si può quindi escludere che una parte del rallentamento 2→3 worker derivi anche "
+    "dalla minore memoria per nodo (16 GB → 8 GB, con conseguente maggiore spill su disco), ma il "
+    "peggioramento 3→4 worker — stessa macchina, più nodi — isola in modo pulito l'effetto dello "
+    "skew dall'effetto della memoria."
 )
 
 NOTE_4_2 = (
-    "[COMPLETARE: confrontare i tempi con partizionamento di default rispetto a "
-    "repartition(16)/repartition(32) sul cluster a 4 worker. Discutere se un numero maggiore "
-    "di partizioni ha aiutato il bilanciamento del carico o se ha introdotto overhead di "
-    "scheduling eccessivo.]"
+    "Non essendo state eseguite le varianti di repartition (vedi nota in Sezione 3), non è "
+    "possibile riportare un confronto quantitativo. Sulla base dell'analisi teorica in Sezione "
+    "4.1, ci si aspetterebbe che un maggior numero di partizioni non aiuti in modo sostanziale "
+    "in questo caso: il problema non è un numero insufficiente di partizioni in generale, ma la "
+    "concentrazione del carico su una singola chiave logica indipendentemente da quante "
+    "partizioni totali esistono — un maggior repartition() ridistribuirebbe meglio le chiavi "
+    "poco attive, ma non la chiave dominante, che resta comunque processata da un numero "
+    "limitato di task."
 )
 
 NOTE_4_3 = (
-    "[COMPLETARE: quale approccio (groupByKey o self-join) è risultato più efficiente nelle "
-    "prove, e perché, sulla base di quanto discusso in Sezione 2.]"
+    "A parità di worker (2, unico punto testato per entrambi con la stessa macchina), il "
+    "self-join è risultato leggermente più lento del groupByKey (77.0 contro 74.2 minuti, +3.8%). "
+    "Questo è coerente con quanto anticipato in Sezione 2.2: il self-join produce un prodotto "
+    "cartesiano di tutte le località osservate nello stesso giorno prima di filtrare le coppie "
+    "valide, generando quindi più lavoro intermedio del groupByKey (che invece genera le coppie "
+    "già filtrate direttamente in memoria per ogni giorno). La differenza è comunque modesta a "
+    "2 worker; non è stato possibile verificare se si amplifichi a 3/4 worker per gli stessi "
+    "limiti di tempo/quota descritti sopra. La correttezza del self-join è comunque stata "
+    "verificata in ogni condizione testata (campione ridotto e cluster a 2 worker): risultato "
+    "identico al groupByKey in tutti i casi."
 )
 
 NOTE_CONCLUSIONI = (
-    "[COMPLETARE: 3-5 righe di sintesi — cosa ha funzionato, quale approccio si è dimostrato "
-    "preferibile nel caso in esame, quali limiti o miglioramenti futuri (es. uso di "
-    "DataFrame/Dataset invece di RDD, broadcast join per dataset più piccoli, tuning "
-    "aggiuntivo dei parametri Spark).]"
+    "L'implementazione (in entrambe le varianti) individua correttamente la coppia di location "
+    "arrotondate ((38.8, -122.8), (38.8, -122.7)) — un'area compatibile con il campo geotermico "
+    "di The Geysers, in California del Nord — come la coppia con il maggior numero di "
+    "co-occorrenze giornaliere (10032, dal 1990-01-05 al 2023-07-29). Il groupByKey si è "
+    "dimostrato leggermente preferibile al self-join nell'unico confronto diretto disponibile "
+    "(2 worker), coerentemente con il minor lavoro intermedio prodotto. Il risultato "
+    "sperimentale più rilevante è tuttavia negativo rispetto alle aspettative di scalabilità "
+    "naive: con una chiave fortemente skewata, aggiungere worker non solo non velocizza "
+    "l'elaborazione oltre un certo punto, ma può peggiorarla per il maggiore overhead di rete, "
+    "poiché né groupByKey né self-join su RDD offrono un meccanismo di redistribuzione delle "
+    "chiavi calde. Un miglioramento naturale, lasciato come lavoro futuro, sarebbe la "
+    "riformulazione del problema con DataFrame/Dataset Spark SQL per beneficiare dell'Adaptive "
+    "Query Execution (skew join automatico), oppure l'applicazione manuale di una tecnica di "
+    "key salting sulla chiave data per distribuire esplicitamente il lavoro della chiave calda "
+    "su più task anche in RDD puro."
 )
 
-# Tabella tempi (Sezione 4). Sostituire "" con il tempo misurato in secondi.
+# Tabella tempi (Sezione 4) — tempi reali misurati su Google Cloud DataProc (14/09/2026).
 TIMING_ROWS = [
-    ("2", "default", "groupByKey", ""),
-    ("2", "default", "self-join", ""),
-    ("3", "default", "groupByKey", ""),
-    ("3", "default", "self-join", ""),
-    ("4", "default", "groupByKey", ""),
-    ("4", "default", "self-join", ""),
-    ("4", "16", "groupByKey", ""),
-    ("4", "32", "groupByKey", ""),
+    ("2 (n2-std-4)", "default", "groupByKey", "4451.7 (74.2 min)"),
+    ("2 (n2-std-4)", "default", "self-join", "4619.0 (77.0 min)"),
+    ("3 (n2-std-2)*", "default", "groupByKey", "9647.2 (160.8 min)"),
+    ("4 (n2-std-2)*", "default", "groupByKey", "11830.1 (197.2 min)"),
 ]
 
 VERSIONS_ROWS = [
     ("Scala", "2.12.17"),
     ("Apache Spark", "3.3.2"),
     ("sbt", "1.9.7"),
-    ("Piattaforma", "Google Cloud DataProc"),
+    ("Piattaforma", "Google Cloud DataProc (europe-west1)"),
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -219,9 +256,19 @@ def build(output_path):
     story.append(Paragraph(
         "Il dataset è composto da record (latitude, longitude, date) in formato CSV con "
         "intestazione. Sono disponibili due versioni: una versione ridotta, usata per i test "
-        "in locale e sulla configurazione solo-master, e una versione completa, usata per "
-        "l'esecuzione e la valutazione delle prestazioni su Google Cloud DataProc.",
+        "in locale e sulla configurazione solo-master, e una versione completa (1.47M record), "
+        "usata per l'esecuzione e la valutazione delle prestazioni su Google Cloud DataProc.",
         body_style))
+
+    story.append(Paragraph("1.2 Risultato", h2_style))
+    story.append(Paragraph(
+        "Sul dataset completo, entrambi gli approcci individuano la stessa coppia vincente — "
+        "<b>((38.8, -122.8), (38.8, -122.7))</b> — con <b>10032 date di co-occorrenza</b>, dal "
+        "1990-01-05 al 2023-07-29 (33.6 anni). Le coordinate ricadono nell'area di The Geysers, "
+        "in California del Nord, il più grande campo geotermico al mondo, dove l'estrazione "
+        "geotermica induce una sismicità indotta pressoché quotidiana da decenni: la coppia "
+        "co-occorre nell'81.8% dei giorni dell'intero intervallo, un risultato coerente col "
+        "dominio applicativo e non un artefatto dei dati o dell'algoritmo.", body_style))
 
     # 2. Approccio implementativo
     story.append(Paragraph("2. Approccio implementativo", h1_style))
@@ -262,12 +309,15 @@ def build(output_path):
     # 3. Setup sperimentale
     story.append(Paragraph("3. Setup sperimentale", h1_style))
     story.append(Paragraph(
-        "Le prove sono state eseguite su Google Cloud DataProc, con macchine di tipo "
-        "<b>n2-standard-4</b> sia per il nodo master sia per i nodi worker (configurazione "
-        "obbligatoria per poter creare cluster con 4 worker), boot disk da 240 GB per "
-        "contenere l'uso entro i limiti degli education credit, e cluster di 2, 3 e 4 "
-        "worker. Il dataset completo e il JAR dell'applicazione sono stati caricati su un "
-        "bucket Google Cloud Storage e referenziati tramite URI gs:// nei job Spark.",
+        "Le prove sono state eseguite su Google Cloud DataProc (regione europe-west1), con "
+        "cluster di 2, 3 e 4 worker, boot disk da 240 GB, memoria executor/driver aumentata "
+        "esplicitamente rispetto ai default di DataProc (necessario per contenere lo shuffle "
+        "spill sulla chiave skewata — vedi Sezione 4). Il cluster a 2 worker usa macchine "
+        "<b>n2-standard-4</b> (4 vCPU/16 GB); per i cluster a 3 e 4 worker è stato necessario "
+        "passare a <b>n2-standard-2</b> (2 vCPU/8 GB) a causa di un vincolo di quota GCP scoperto "
+        "durante gli esperimenti stessi, descritto in dettaglio in Sezione 4. Il dataset completo "
+        "e il JAR dell'applicazione sono stati caricati su un bucket Google Cloud Storage e "
+        "referenziati tramite URI gs:// nei job Spark.",
         body_style))
     story.append(note_box(NOTE_SETUP_PARTITIONING))
 
@@ -280,8 +330,11 @@ def build(output_path):
     story.append(Paragraph("4. Analisi di scalabilità e prestazioni", h1_style))
     story.append(note_box(NOTE_SECTION4_INTRO))
     story.append(data_table(
-        ["Worker", "Partizioni", "Approccio", "Tempo (s)"],
-        TIMING_ROWS, [3 * cm, 3.5 * cm, 5 * cm, 5 * cm]))
+        ["Worker (macchina)", "Partizioni", "Approccio", "Tempo (s)"],
+        TIMING_ROWS, [4 * cm, 3 * cm, 4.5 * cm, 5 * cm]))
+    story.append(Paragraph(
+        "* macchina più piccola (n2-standard-2) per il vincolo di quota descritto sopra, non per "
+        "scelta progettuale.", footer_style))
     story.append(Spacer(1, 8))
 
     story.append(Paragraph("4.1 Scalabilità (strong scaling)", h2_style))
