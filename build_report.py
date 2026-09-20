@@ -319,7 +319,7 @@ def build(output_path):
         "e il JAR dell'applicazione sono stati caricati su un bucket Google Cloud Storage e "
         "referenziati tramite URI gs:// nei job Spark.",
         body_style))
-    story.append(note_box(NOTE_SETUP_PARTITIONING))
+    story.append(Paragraph(NOTE_SETUP_PARTITIONING, body_style))
 
     story.append(Paragraph("<b>Versioni e librerie</b>", body_style))
     story.append(data_table(
@@ -328,7 +328,7 @@ def build(output_path):
 
     # 4. Analisi di scalabilità e prestazioni
     story.append(Paragraph("4. Analisi di scalabilità e prestazioni", h1_style))
-    story.append(note_box(NOTE_SECTION4_INTRO))
+    story.append(Paragraph(NOTE_SECTION4_INTRO, body_style))
     story.append(data_table(
         ["Worker (macchina)", "Partizioni", "Approccio", "Tempo (s)"],
         TIMING_ROWS, [4 * cm, 3 * cm, 4.5 * cm, 5 * cm]))
@@ -338,17 +338,17 @@ def build(output_path):
     story.append(Spacer(1, 8))
 
     story.append(Paragraph("4.1 Scalabilità (strong scaling)", h2_style))
-    story.append(note_box(NOTE_4_1))
+    story.append(Paragraph(NOTE_4_1, body_style))
 
     story.append(Paragraph("4.2 Effetto del partizionamento", h2_style))
-    story.append(note_box(NOTE_4_2))
+    story.append(Paragraph(NOTE_4_2, body_style))
 
     story.append(Paragraph("4.3 Confronto tra i due approcci", h2_style))
-    story.append(note_box(NOTE_4_3))
+    story.append(Paragraph(NOTE_4_3, body_style))
 
     # 5. Conclusioni
     story.append(Paragraph("5. Conclusioni", h1_style))
-    story.append(note_box(NOTE_CONCLUSIONI))
+    story.append(Paragraph(NOTE_CONCLUSIONI, body_style))
 
     story.append(Spacer(1, 6))
     story.append(Paragraph(
