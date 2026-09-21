@@ -52,8 +52,8 @@ NOTE_SECTION4_INTRO = (
     "senza un aumento di quota, che si è rivelato non ottenibile automaticamente su un progetto "
     "così recente (motivo restituito dall'API: <i>NOT_ENOUGH_USAGE_HISTORY</i>). Si è quindi "
     "proceduto usando n2-standard-2 (2 vCPU / 8 GB) per i cluster a 3 e 4 worker, che introduce "
-    "una variabile di confondimento esplicita — i tre punti della curva non condividono lo stesso "
-    "hardware per nodo — dichiarata qui per trasparenza metodologica."
+    "una variabile di confondimento esplicita (i tre punti della curva non condividono lo stesso "
+    "hardware per nodo), dichiarata qui per trasparenza metodologica."
 )
 
 NOTE_4_1 = (
@@ -69,11 +69,11 @@ NOTE_4_1 = (
     "gestisce lo skew-join automaticamente ridistribuendo la chiave calda su più task). Aggiungere "
     "nodi, in questo scenario, aumenta solo l'overhead di coordinamento e di shuffle di rete tra "
     "più macchine, senza alcun guadagno di parallelismo reale sulla parte di lavoro che conta di "
-    "più — da qui il rallentamento anziché lo speedup atteso da un naive strong scaling. Il "
+    "più: da qui il rallentamento anziché lo speedup atteso da un naive strong scaling. Il "
     "confronto è inoltre confondato dal cambio di macchina (n2-standard-4 → n2-standard-2, vedi "
     "sopra): non si può quindi escludere che una parte del rallentamento 2→3 worker derivi anche "
     "dalla minore memoria per nodo (16 GB → 8 GB, con conseguente maggiore spill su disco), ma il "
-    "peggioramento 3→4 worker — stessa macchina, più nodi — isola in modo pulito l'effetto dello "
+    "peggioramento 3→4 worker (stessa macchina, più nodi) isola in modo pulito l'effetto dello "
     "skew dall'effetto della memoria."
 )
 
@@ -83,7 +83,7 @@ NOTE_4_2 = (
     "4.1, ci si aspetterebbe che un maggior numero di partizioni non aiuti in modo sostanziale "
     "in questo caso: il problema non è un numero insufficiente di partizioni in generale, ma la "
     "concentrazione del carico su una singola chiave logica indipendentemente da quante "
-    "partizioni totali esistono — un maggior repartition() ridistribuirebbe meglio le chiavi "
+    "partizioni totali esistono: un maggior repartition() ridistribuirebbe meglio le chiavi "
     "poco attive, ma non la chiave dominante, che resta comunque processata da un numero "
     "limitato di task."
 )
@@ -103,8 +103,8 @@ NOTE_4_3 = (
 
 NOTE_CONCLUSIONI = (
     "L'implementazione (in entrambe le varianti) individua correttamente la coppia di location "
-    "arrotondate ((38.8, -122.8), (38.8, -122.7)) — un'area compatibile con il campo geotermico "
-    "di The Geysers, in California del Nord — come la coppia con il maggior numero di "
+    "arrotondate ((38.8, -122.8), (38.8, -122.7)), un'area compatibile con il campo geotermico "
+    "di The Geysers in California del Nord, come la coppia con il maggior numero di "
     "co-occorrenze giornaliere (10032, dal 1990-01-05 al 2023-07-29). Il groupByKey si è "
     "dimostrato leggermente preferibile al self-join nell'unico confronto diretto disponibile "
     "(2 worker), coerentemente con il minor lavoro intermedio prodotto. Il risultato "
@@ -227,8 +227,8 @@ def build(output_path):
     story.append(Paragraph(
         "Analisi di Co-occorrenza di Terremoti con Scala e Apache Spark", title_style))
     story.append(Paragraph(
-        "Progetto — Scalable and Cloud Programming, A.A. 2025-26", subtitle_style))
-    story.append(Paragraph(f"{STUDENT_NAME} — {MATRICOLA}", subtitle_style))
+        "Progetto per l'esame di Scalable and Cloud Programming, A.A. 2025-26", subtitle_style))
+    story.append(Paragraph(f"{STUDENT_NAME}, matricola {MATRICOLA}", subtitle_style))
     story.append(Paragraph(f"Repository: {REPO_URL}", subtitle_style))
     story.append(Spacer(1, 10))
 
@@ -246,9 +246,9 @@ def build(output_path):
     story.append(Paragraph(
         "Poiché la posizione esatta di un evento non è rilevante quanto l'area in cui esso "
         "si verifica, latitudine e longitudine vengono arrotondate alla prima cifra decimale "
-        "(arrotondamento al valore più vicino). Questo introduce duplicati — più eventi "
+        "(arrotondamento al valore più vicino). Questo introduce duplicati (più eventi "
         "nello stesso giorno che ricadono nella stessa “cella” geografica "
-        "arrotondata — che devono essere deduplicati prima di generare le coppie, altrimenti "
+        "arrotondata) che devono essere deduplicati prima di generare le coppie, altrimenti "
         "si rischia di individuare come vincente una coppia di eventi nella stessa cella "
         "geografica.", body_style))
 
@@ -262,8 +262,8 @@ def build(output_path):
 
     story.append(Paragraph("1.2 Risultato", h2_style))
     story.append(Paragraph(
-        "Sul dataset completo, entrambi gli approcci individuano la stessa coppia vincente — "
-        "<b>((38.8, -122.8), (38.8, -122.7))</b> — con <b>10032 date di co-occorrenza</b>, dal "
+        "Sul dataset completo, entrambi gli approcci individuano la stessa coppia vincente, "
+        "<b>((38.8, -122.8), (38.8, -122.7))</b>, con <b>10032 date di co-occorrenza</b>, dal "
         "1990-01-05 al 2023-07-29 (33.6 anni). Le coordinate ricadono nell'area di The Geysers, "
         "in California del Nord, il più grande campo geotermico al mondo, dove l'estrazione "
         "geotermica induce una sismicità indotta pressoché quotidiana da decenni: la coppia "
@@ -287,7 +287,7 @@ def build(output_path):
     ]))
     story.append(Spacer(1, 4))
 
-    story.append(Paragraph("2.1 Approccio 1 — groupByKey", h2_style))
+    story.append(Paragraph("2.1 Approccio 1: groupByKey", h2_style))
     story.append(Paragraph(
         "Le località vengono raggruppate per data con <b>groupByKey</b>; per ogni giorno, le "
         "coppie candidate vengono generate localmente (in memoria, sul singolo executor) a "
@@ -295,7 +295,7 @@ def build(output_path):
         "efficiente quando il numero di eventi per giorno è contenuto, poiché evita uno "
         "shuffle aggiuntivo per generare le coppie.", body_style))
 
-    story.append(Paragraph("2.2 Approccio 2 — Self-Join", h2_style))
+    story.append(Paragraph("2.2 Approccio 2: Self-Join", h2_style))
     story.append(Paragraph(
         "In alternativa, le coppie vengono generate tramite un self-join distribuito "
         "dell'RDD chiave-valore (data, località) con se stesso, filtrando poi le coppie con "
@@ -312,7 +312,7 @@ def build(output_path):
         "Le prove sono state eseguite su Google Cloud DataProc (regione europe-west1), con "
         "cluster di 2, 3 e 4 worker, boot disk da 240 GB, memoria executor/driver aumentata "
         "esplicitamente rispetto ai default di DataProc (necessario per contenere lo shuffle "
-        "spill sulla chiave skewata — vedi Sezione 4). Il cluster a 2 worker usa macchine "
+        "spill sulla chiave skewata, vedi Sezione 4). Il cluster a 2 worker usa macchine "
         "<b>n2-standard-4</b> (4 vCPU/16 GB); per i cluster a 3 e 4 worker è stato necessario "
         "passare a <b>n2-standard-2</b> (2 vCPU/8 GB) a causa di un vincolo di quota GCP scoperto "
         "durante gli esperimenti stessi, descritto in dettaglio in Sezione 4. Il dataset completo "
