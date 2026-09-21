@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Genera Report_SCP_Earthquake_Cooccurrence.pdf a partire dai contenuti sottostanti.
+Genera Zini_Alberto_0001007558_Report_SCP.pdf a partire dai contenuti sottostanti.
 
 Uso:
     python3 build_report.py [output.pdf]
@@ -360,5 +360,5 @@ def build(output_path):
 
 
 if __name__ == "__main__":
-    out = sys.argv[1] if len(sys.argv) > 1 else "Report_SCP_Earthquake_Cooccurrence.pdf"
+    out = sys.argv[1] if len(sys.argv) > 1 else "Zini_Alberto_0001007558_Report_SCP.pdf"
     build(out)

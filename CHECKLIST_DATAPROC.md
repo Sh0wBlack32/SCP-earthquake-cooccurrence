@@ -306,7 +306,7 @@ gcloud dataproc clusters delete eq-cluster-4w --region=$REGION
 ## 9. Dopo gli esperimenti
 
 - Aggiorna la tabella di scalabilità nel `README.md` con i tempi reali.
-- Apri `Report_SCP_Earthquake_Cooccurrence.pdf` (o rigenera da `build_report.py` se preferisci
+- Apri `Zini_Alberto_0001007558_Report_SCP.pdf` (o rigenera da `build_report.py` se preferisci
   modificare via script) e sostituisci i paragrafi placeholder (evidenziati in rosso) nelle sezioni
   2.2, 3, 4 e 5 con la tua analisi reale: andamento della scalabilità, effetto del partizionamento,
   confronto tra i due approcci, conclusioni.
